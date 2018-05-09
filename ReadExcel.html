@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.7.7/xlsx.core.min.js"></script>
+    <script type="text/javascript" src=" https://cdnjs.cloudflare.com/ajax/libs/extjs/4.2.1/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/4.2.1/ext-all.js"></script>
+   
+   
+
+    <script src="ExtractCreate.js"></script>
+    <script src="ExtractCore.js"></script>
+    <script src="firebase.js"></script>
+    <script src="ExtractHelper.js"></script>
+
+    <script src="Utils.js"></script>
+
+    <script src="ImportData.js"></script>
+
+
+    <script>
+        function handleFile(e) {
+
+            //Get the files from Upload control
+            var files = e.target.files;
+            var i, f;
+            //Loop through files
+            for (i = 0, f = files[i]; i != files.length; ++i) {
+                var reader = new FileReader();
+                var name = f.name;
+                reader.onload = function (e) {
+                    var data = e.target.result;
+
+                    top.result = [];
+                    var workbook = XLSX.read(data, { type: 'binary' });
+
+                    var sheet_name_list = workbook.SheetNames;
+                    sheet_name_list.forEach(function (y) { /* iterate through sheets */
+                        //Convert the cell value to Json
+                        var roa = XLSX.utils.sheet_to_json(workbook.Sheets[y]);
+                        if (roa.length > 0) {
+                            top.result.push({ y: roa });
+                        }
+                    });
+                    console.log("Reading Excel complete!");
+                    //Get the first column first cell value
+                    //alert(result[0].Column1);
+                };
+                reader.readAsArrayBuffer(f);
+            }
+
+        }
+
+        //var processedData = {};
+        //function processExcel() {
+        //    //Step 1 Process Groups
+        //    processGroups();
+        //    //Step 2 Process Characteristics
+        //    processCharacteristics();
+        //    //Step 3 Process Outcomes
+        //    processOutcomes();
+
+        //    return processedData;
+        //}
+
+        //function processGroups() {
+        //    //Get All unique reference Id in Group sheet
+        //    var refIds = getAllReferenceId(0);
+        //    var groupSheet = result[0];
+        //    //Group all referenceid rows by ref id
+
+        //    var data = {};
+        //    for (var i = 0; i < refIds.length; i++) {
+        //        data[refIds[i]] = []
+        //        for (var j = 0; j < groupSheet.y.length; j++) {
+        //            if (groupSheet.y[j].RefID == refIds[i]) {
+        //                data[refIds[i]].push(groupSheet.y[j]);
+        //            }
+        //        }
+        //    }
+
+        //    //Now Process each refid
+        //    for (var i = 0; i < refIds.length; i++) {
+        //        var rows = data[refIds[i]];
+        //        for (var j = 0; j < rows.length; j++) {
+        //            //Soheb process here.
+        //            console.log(rows[j]);
+        //        }
+
+        //    }
+
+        //}
+
+        //function getAllReferenceId(sheetNo) {
+        //    var referenceIdList = [];
+        //    for (var i = 0; i < result[sheetNo].y.length; i++) {
+        //        var refID = result[sheetNo].y[i].RefID;
+        //        if (referenceIdList.indexOf(refID) == -1) {
+        //            referenceIdList.push(refID);
+        //        }
+        //    }
+        //    return referenceIdList;
+        //}
+
+        //Change event to dropdownlist
+        $(document).ready(function () {
+            Ixl = new ImportData();
+            $('#files').change(handleFile);
+            var config = {
+                apiKey: "AIzaSyADeX6xK98s222_2svBQY9txVqGH6SxAes",
+                authDomain: "docextract-38175.firebaseapp.com",
+                databaseURL: "https://docextract-38175.firebaseio.com",
+                projectId: "docextract-38175",
+                storageBucket: "docextract-38175.appspot.com",
+                messagingSenderId: "434323239288"
+            };
+
+            firebase.initializeApp(config);
+            top.firebase = firebase;
+            //$("#btnGroup").click(Ixl.processGroups);
+        });
+    </script>
+
+
+</head>
+<body>
+    <input type="file" id="files" name="files" /><br><br><br>
+    <input type="button" id="btnGroup" onclick="Ixl.processExcel()" value="Process Groups" />
+
+</body>
+</html>
