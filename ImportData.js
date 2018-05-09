@@ -193,7 +193,7 @@ class ImportData {
 
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (refIds[i] == "926565") {
+            if (true &&  refIds[i] == "2281657") {
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -579,6 +579,9 @@ class ImportData {
 
             var arrClonedOset = ['0'];
             var objClonedOgv = {};
+            let prevTimtpoint = "";
+            let newTimepoint = "";
+            var hasTimepoint = false;
             for (let j = 0; j < rows.length; j++) {
                 // Manipulate result data.
                 var rowData = rows[j];
@@ -586,13 +589,27 @@ class ImportData {
                 // just create it with for both don't think too much for now.... if not exist for that reference 
                 // check if this timepoint is avilable or not.if exist use this otherwise create new one
                 let timepoint_mean = "";
-                let timepoint_standard = ""
-                let prevTimtpoint = "";
-                let newTimepoint = "";
+                let timepoint_standard = "";
+                
                 if (isOutcomeSheet) {
                     if (!Extract.Data["Phases"]) {
                         Extract.Data["Phases"] = {};
                     }
+                    if (timepoint) {
+                        if (prevTimtpoint) {
+                            prevTimtpoint = newTimepoint;
+                        }
+                        newTimepoint = timepoint;
+                    }
+                    console.log(newTimepoint + ':' + prevTimtpoint);
+
+                    if (newTimepoint && prevTimtpoint && newTimepoint != prevTimtpoint) {
+                        console.log('p:' + prevTimtpoint + ' , N:' + newTimepoint);
+
+                        //let ocTemp = Extract.ExcelImport.getEntity(Extract.EntityTypes.Outcomes, oid);
+                        //let osetTempid = me.getoutcomesetidbyoutcomeName(outcomeNames, outcome_osets, ocTemp.name, 'O' + timepoint + timepoint, obj_outcome_outcomeset); 
+                    }
+
                     var tempTimepointMean = Extract.ExcelImport.phaseExist("", timepoint, "Week(s)", "", "", "timepoint", "=", "", "", "", "", "", "");
                     if (tempTimepointMean == "") {
                         timepoint_mean = Extract.ExcelImport.createPhaseAddToSource("", timepoint, "Week(s)", "", "", "timepoint", "=", "", "", "", "", "", "");
@@ -734,7 +751,7 @@ class ImportData {
 
                                     if (rowData[colkey + '_Range_Variable_Variance']) {
                                         var ftypeval = rowData[colkey + '_Range_Variable_Variance'];
-                                        if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1) {
+                                        if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1 || ['sd', 'se'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1) {
                                             if (ftypeval == "95%CI") {
                                                 ftypeval = "95 % CI";
                                             }
@@ -784,8 +801,14 @@ class ImportData {
                                 } else if (key == colkey + '_Mean') {
                                     // udpate only mean or median
                                     let ftype = rowData[colkey + '_Range_Variable_Variance'];
-                                    if (field_Type == "Mean" || field_Type == "Median") {
-                                        Extract.ExcelImport.createFieldValue(field_Type, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
+                                    if (field_Type.indexOf("Mean") > -1 || field_Type.indexOf("Median") > -1) {
+                                        var typeTemp = "";
+                                        if (field_Type.indexOf("Mean") > -1) {
+                                            typeTemp = "Mean";
+                                        } else if (field_Type.indexOf("Median") > -1) {
+                                            typeTemp = "Median";
+                                        }
+                                        Extract.ExcelImport.createFieldValue(typeTemp, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                     }
                                 }
 
