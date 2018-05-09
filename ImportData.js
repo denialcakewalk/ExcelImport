@@ -284,7 +284,7 @@ class ImportData {
         this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
         this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Type", "Randomized", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Type", "Completed/Finished", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
         this.createDatapointAddToSource("n Value", popCF, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
         this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
     }
@@ -492,6 +492,7 @@ class ImportData {
         return gp
     }
     processOutcomes(refId) {
+        debugger
         var me = this;
         var isOutcomeSheet = true;   // for outcome sheet true and for Baselinecharacteristic false
         //Get All unique reference Id in Group sheet
@@ -586,6 +587,8 @@ class ImportData {
                 // check if this timepoint is avilable or not.if exist use this otherwise create new one
                 let timepoint_mean = "";
                 let timepoint_standard = ""
+                let prevTimtpoint = "";
+                let newTimepoint = "";
                 if (isOutcomeSheet) {
                     if (!Extract.Data["Phases"]) {
                         Extract.Data["Phases"] = {};
@@ -663,6 +666,8 @@ class ImportData {
                         var N_PP_val = "";
                         var n_PP_val = "";
                         var Per_PP_val = "";
+                        // Get fieldValue for clone 
+
                         //update ogv timepoint (if fielldtype== standard then use timepoint standard else timepointMean
                         if (timepoint_standard && timepoint_standard["id"] && ogv["timepoint"]) {
                             ogv.timepoint.id = timepoint_standard.id;
@@ -741,8 +746,7 @@ class ImportData {
                                     var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
                                     dpFType.Value += val;
                                     // udpate field Type
-                                } else if (key == colkey + '_SD_SE' || key == colkey + '_Range_Low' || key == colkey + '_Range_High' || key == colkey + '_Mean') {
-                                    // udpate SD SE Value
+                                    // Updated field value as well 
                                     let ftype = rowData[colkey + '_Range_Variable_Variance'];
                                     let lowVal = rowData[colkey + '_Range_Low'];
                                     let highVal = rowData[colkey + '_Range_High'];
@@ -755,22 +759,37 @@ class ImportData {
                                         lowHigh = highVal;
                                     }
                                     if (ftype == "95%CI") {
-                                        ftype = "Mean-CI";
+                                        if (val.indexOf("Mean") > -1) {
+                                            ftype = "Mean-CI";
+                                        } else if (val.indexOf("Median") > -1) {
+                                            ftype = "Median-CI";
+                                        }
+                                        
                                         // Update value with low high 
 
-                                    } else if (ftypeval == "IQR") {
-                                        ftype = "Mean-IQR";
-                                    }
-                                    else if (rowData[colkey + '_Mean']) {
-                                        ftype = "Mean";
+                                    } else if (ftype == "IQR") {
+                                        if (val.indexOf("Mean") > -1) {
+                                            ftype = "Mean-IQR";
+                                        } else if (val.indexOf("Median") > -1) {
+                                            ftype = "Median-IQR";
+                                        }
                                     }
                                     if (ftype == "Mean-CI" || ftype == "Mean-IQR") {
                                         Extract.ExcelImport.createFieldValue(ftype, lowHigh, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                     } else {
+                                        val = rowData[colkey + '_SD_SE'];
                                         Extract.ExcelImport.createFieldValue(ftype, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                     }
 
-                                } else if (key == colkey + '_Unit') {
+                                } else if (key == colkey + '_Mean') {
+                                    // udpate only mean or median
+                                    let ftype = rowData[colkey + '_Range_Variable_Variance'];
+                                    if (field_Type == "Mean" || field_Type == "Median") {
+                                        Extract.ExcelImport.createFieldValue(field_Type, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
+                                    }
+                                }
+
+                                else if (key == colkey + '_Unit') {
                                     // udpate Unit
                                     var dpUnit = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "UnitLabel");
                                     dpUnit.Value = val;
@@ -779,16 +798,16 @@ class ImportData {
                                     // udpate per value for pp
                                     Per_PP_val = val;
                                 }
-                                else if (key.startsWith(colkey + '_AuthoerDefinition')) {
+                                else if (key.startsWith(colkey + '_AuthorDefinition')) {
 
-                                    if (rowData[colkey + '_AuthoerDefinition_1']) {
+                                    if (rowData[colkey + '_AuthorDefinition_1']) {
                                         if (val) {
-                                            val += rowData[colkey + '_AuthoerDefinition_1'];
+                                            val += rowData[colkey + '_AuthorDefinition_1'];
                                         }
                                     }
-                                    if (rowData[colkey + '_AuthoerDefinition_2']) {
+                                    if (rowData[colkey + '_AuthorDefinition_2']) {
                                         if (val) {
-                                            val += rowData[colkey + '_AuthoerDefinition_2'];
+                                            val += rowData[colkey + '_AuthorDefinition_2'];
                                         }
                                     }
                                     // udpate Authoer Defination value
@@ -911,7 +930,7 @@ class ImportData {
             var obj = data[0];
             if (colkey) {
                 for (let key in obj) {
-                    if (key.startsWith(colkey)) {
+                    if (key.startsWith(colkey + "_")) {
                         value = obj[key];
                         break;
                     }
