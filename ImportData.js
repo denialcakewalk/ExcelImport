@@ -193,7 +193,7 @@ class ImportData {
 
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "2281657" || refIds[i] == "926565" )) {
+            if (true || (refIds[i] == "168015")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -695,7 +695,8 @@ class ImportData {
                             }
                         }
                     } else {
-                        if (timepoint != 0) {
+                        debugger
+                        if (true || timepoint) {
                             var tempTimepointStandard = Extract.ExcelImport.phaseExist("", "", "Baseline", "", "", "timepoint", "=", "", "", "", "", "", "");
                             if (tempTimepointStandard == "") {
                                 timepoint_standard = Extract.ExcelImport.createPhaseAddToSource("", "", "Baseline", "", "", "timepoint", "=", "", "", "", "", "", "");
@@ -713,8 +714,6 @@ class ImportData {
                                 var oid = '';
                                 var osetid = '';
                                 var colkey = Tcolkey.split('-')[1]; //Tcolkey.replace("T" + timepoint + rowKey, "");
-                                console.log(Tcolkey);
-                                console.log(colkey);
                                 if (o_oset.length == 2) {
                                     oid = o_oset[0];
                                     osetid = o_oset[1];
@@ -743,8 +742,8 @@ class ImportData {
                                     var ft = field_Type.split("/");
                                     if (ft.length > 1) {
                                         var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
-                                        dpFType.Value = ft[1];
-                                        dpFType.type = ft[0];
+                                        dpFType.Value = ft[1].trim();
+                                        dpFType.type = ft[0].trim();
                                     } else {
                                         var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
                                         if (field_Type && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(field_Type.toLowerCase()) > -1) { 
@@ -777,8 +776,17 @@ class ImportData {
                                             // udpate population value
                                             var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
                                             dpValue.Value = val;
+                                            var defaultName = this.getDefaultPopulationName(ogv.groupId, val.trim());
+                                            if (!Ext.isEmpty(defaultName)) {
+                                                var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
+                                                dpName.Value = defaultName;
+                                            }
                                         } else if (key == colkey + '_Population_PP') {
                                             N_PP_val = val;
+                                            var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
+                                            if (dpMOA.Value != "ITT") {
+                                                dpMOA.Value = "PP";
+                                            }
                                             // udpate population vaue for PP
                                         } else if (key == colkey + '_MOA_ITT') {
                                             // udpate MOA vlaue for ITT
@@ -789,13 +797,16 @@ class ImportData {
                                             //}
                                             countMOA++;
                                         } else if (key == colkey + '_MOA_PP') {
+                                            if (val != "") {
+                                                var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
+                                                if (dpMOA.Value != "ITT") {
+                                                    dpMOA.Value = "PP";
+                                                } 
+                                            }
                                             countMOA++;
                                             if (countMOA == 0) {
                                                 // udpate MOA value for PP
-                                                if (val != "") {
-                                                    var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
-                                                    dpMOA.Value = "PP";
-                                                }
+                                                
                                             } else {
                                                 needtoCloneforMOA = true;
                                             }
@@ -815,9 +826,11 @@ class ImportData {
                                         } else if (key == colkey + '_FieldType') {
                                             // udpate field Type
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
-                                            if (val && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(val.toLowerCase()) > -1){
+                                            if (val && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(val.toLowerCase()) > -1) {
+                                                val = val.trim();
                                                 dpFType.type = val;
                                             } else {
+                                                val = val.trim();
                                                 dpFType.Value = val;
                                             }
                                             
@@ -827,59 +840,90 @@ class ImportData {
                                             //if (rowData[colkey + '_Mean']) {
                                             //    val += rowData[colkey + '_Mean'];
                                             //}
-
+                                            var variableRange = rowData[colkey + '_Range_Variable_Variance'];
+                                            variableRange = variableRange.split('/');
                                             if (rowData[colkey + '_Range_Variable_Variance']) {
-                                                var ftypeval = rowData[colkey + '_Range_Variable_Variance'];
-                                                if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1) {
-                                                    if (ftypeval == "95%CI") {
-                                                        ftypeval = "95 % CI";
+                                                if (variableRange.length > 0) {
+                                                    for (var variableRow = 0; variableRow < variableRange.length; variableRow++) {
+                                                        let ftypeval = variableRange[variableRow];
+                                                        ftypeval = ftypeval.trim();
+                                                        if (['SD', 'SE'].indexOf(ftypeval) == -1) {
+                                                            if (ftypeval == "95%CI") {
+                                                                ftypeval = "95 % CI";
+                                                            } else if (ftypeval.toLowerCase() == "range") {
+                                                                ftypeval = "Total Range";
+                                                            }
+                                                            if (ftypeval && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(ftypeval.toLowerCase()) == -1) {
+                                                                val += " [(" + ftypeval + ")]";
+                                                            }
+
+                                                        } else {
+                                                            val += " +/- (" + ftypeval + ")";
+                                                        }
                                                     }
-                                                    if (ftypeval && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(ftypeval.toLowerCase()) == -1) {
-                                                        val += " [(" + ftypeval + ")]";
-                                                    }
-                                                    
-                                                } else {
-                                                    val += " +/-  (" + ftypeval + ")";
+
                                                 }
+
+                                                
                                             }
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
-                                            console.log(val);
+                                                                                        
                                             dpFType.Value += val;
                                             console.log(dpFType.Value);
+                                            var ftypeval2 = dpFType.Value;
                                             // udpate field Type
                                             // Updated field value as well 
-                                            let ftype = rowData[colkey + '_Range_Variable_Variance'];
-                                            let lowVal = rowData[colkey + '_Range_Low'];
-                                            let highVal = rowData[colkey + '_Range_High'];
-                                            let lowHigh = "";
-                                            if (lowVal != "" && highVal != "") {
-                                                lowHigh = lowVal + '-' + highVal;
-                                            } else if (lowVal != "") {
-                                                lowHigh = lowVal;
-                                            } else if (highVal != "") {
-                                                lowHigh = highVal;
-                                            }
-                                            if (ftype == "95%CI") {
-                                                if (val.indexOf("Mean") > -1) {
-                                                    ftype = "Mean-CI";
-                                                } else if (val.indexOf("Median") > -1) {
-                                                    ftype = "Median-CI";
-                                                }
+                                            if (variableRange.length > 0) {
+                                                for (var variableRow = 0; variableRow < variableRange.length; variableRow++) {
+                                                    let ftype = variableRange[variableRow];
+                                                    let lowVal = rowData[colkey + '_Range_Low'];
+                                                    let highVal = rowData[colkey + '_Range_High'];
+                                                    let lowHigh = "";
+                                                    if (lowVal && highVal && lowVal != "" && highVal != "" ) {
+                                                        lowHigh = lowVal + '-' + highVal;
+                                                    } else if (lowVal && lowVal != "") {
+                                                        lowHigh = lowVal;
+                                                    } else if (highVal && highVal != "") {
+                                                        lowHigh = highVal;
+                                                    }
+                                                    if (ftype == "95%CI") {
+                                                        if (ftypeval2.indexOf("Mean") > -1) {
+                                                            ftype = "Mean-CI";
+                                                        } else if (ftypeval2.indexOf("Median") > -1) {
+                                                            ftype = "Median-CI";
+                                                        }
+                                                        // Update value with low high 
+                                                    } else if (ftype == "IQR") {
+                                                        if (ftypeval2.indexOf("Mean") > -1) {
+                                                            ftype = "Mean-IQR";
+                                                        } else if (ftypeval2.indexOf("Median") > -1) {
+                                                            ftype = "Median-IQR";
+                                                        }
+                                                    } else if (ftype.toLowerCase() == "range" && (variableRange.length > 1 && variableRange[0] )) {
+                                                        if (ftypeval2.indexOf("Mean") > -1) {
+                                                            ftype = variableRange[0] + "-TotalRange";
+                                                        } else if (ftypeval2.indexOf("Median") > -1) {
+                                                            ftype = variableRange[0] + "-TotalRange";
+                                                        }
+                                                    } else if (ftype.toLowerCase() == "range") {
+                                                        let FieldType1 = rowData[colkey + '_FieldType'];
+                                                        if (ftypeval2.indexOf("Mean") > -1) {
+                                                            ftype = "Mean-TotalRange";
+                                                        } else if (ftypeval2.indexOf("Median") > -1) {
+                                                            ftype = "Median-TotalRange";
+                                                        }
+                                                    }
 
-                                                // Update value with low high 
-
-                                            } else if (ftype == "IQR") {
-                                                if (val.indexOf("Mean") > -1) {
-                                                    ftype = "Mean-IQR";
-                                                } else if (val.indexOf("Median") > -1) {
-                                                    ftype = "Median-IQR";
+                                                    if (ftype.indexOf('-') > -1 && lowHigh != "") {
+                                                        Extract.ExcelImport.createFieldValue(ftype, lowHigh, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
+                                                    } else {
+                                                        val = rowData[colkey + '_SD_SE'];
+                                                        if (val && val != "") {
+                                                            Extract.ExcelImport.createFieldValue(ftype, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
+                                                        }
+                                                    }
+                                                    
                                                 }
-                                            }
-                                            if (ftype == "Mean-CI" || ftype == "Mean-IQR") {
-                                                Extract.ExcelImport.createFieldValue(ftype, lowHigh, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
-                                            } else {
-                                                val = rowData[colkey + '_SD_SE'];
-                                                Extract.ExcelImport.createFieldValue(ftype, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                             }
 
                                         } else if (key == colkey + '_Mean') {
@@ -925,7 +969,6 @@ class ImportData {
                                 }
                                 if (needtoCloneforMOA && true) {
                                     iterationCreatedForMOA = false;
-                                    console.log(arrClonedOset);
                                     for (var indexRow = 0; indexRow < arrClonedOset.length; indexRow++) {
                                         if (arrClonedOset[indexRow] == Tcolkey) {
                                             iterationCreatedForMOA = true;
@@ -1060,7 +1103,6 @@ class ImportData {
                 var oSet = Extract.Data.OutcomeSets[Extract.Data.Outcomes[key].OutcomeSets[i]];
                 if (me.isEmptyOutcomeSet(oSet)) {
                     Extract.ExcelImport.deleteOutcomeSet(oSet.id);
-                    console.log(oSet.id);
                 }
             }
         }
@@ -1087,6 +1129,48 @@ class ImportData {
             }
         }
         return isEmpty;
+    }
+    getDefaultPopulationName(groupId, val) {
+        var defaultName = '';
+        var Groups = Extract.Helper.getEntityAsArray(Extract.EntityTypes.Groups);
+        if (Groups.length > 0) {
+            var cntgrp = Groups.length;
+            for (var g = 0; g < cntgrp; g++) {
+                if (Groups[g].id == groupId) {
+                    var Sources = Object.keys(Groups[g].Sources);
+                    var cntSource = Sources.length;
+                    for (var j = 0; j < cntSource; j++) {
+                        if (Sources[j] == Extract.Groups.SOURCENAMES.ARM_POPULATION) {
+                            var lstDP = Extract.Helper.getEntityListByArrayId(Groups[g].Sources[Sources[j]]);
+
+                            var cntRow = Utils.getRowwiseDPCount(lstDP);
+                            var dpList = Utils.rowwiseDPList(lstDP);
+
+                            for (var i = 0; i < dpList.length; i++) {
+                                var dp = dpList[i];
+                                var dpNm = $.grep(dp, function (e) { return e.Name == 'n Type' });
+                                var dpVl = $.grep(dp, function (e) { return e.Name == 'n Value' });
+                                if (dpVl.length > 0) {
+                                    if (dpVl[0].Value == val) {
+                                        for (var k = 0; k < dpNm.length; k++) {
+                                            if (!Ext.isEmpty(dpNm[k].Value)) {
+                                                defaultName = dpNm[k].Value;
+                                                break;
+                                            }
+                                        }
+                                        //defaultValue = dpVl[0].Value;                                                
+                                        break;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return defaultName;
     }
     //#endregion
 }
