@@ -193,7 +193,7 @@ class ImportData {
 
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || refIds[i] == "926565") {
+            if (true && refIds[i] == "2281657") {
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -830,7 +830,9 @@ class ImportData {
                                                 }
                                             }
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
+                                            console.log(val);
                                             dpFType.Value += val;
+                                            console.log(dpFType.Value);
                                             // udpate field Type
                                             // Updated field value as well 
                                             let ftype = rowData[colkey + '_Range_Variable_Variance'];
