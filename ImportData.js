@@ -712,6 +712,8 @@ class ImportData {
                                 var oid = '';
                                 var osetid = '';
                                 var colkey = Tcolkey.split('-')[1]; //Tcolkey.replace("T" + timepoint + rowKey, "");
+                                console.log(Tcolkey);
+                                console.log(colkey);
                                 if (o_oset.length == 2) {
                                     oid = o_oset[0];
                                     osetid = o_oset[1];
@@ -761,7 +763,6 @@ class ImportData {
                                     ogv.timepoint.id = timepoint_standard.id;
                                 }
                                 var udpatedFiedlType = false;
-                                var ITTExist = false;
                                 for (let key in rowData) {
                                     // for (let osetRow = 0; osetRow < length; osetRow++) {
 
@@ -771,13 +772,8 @@ class ImportData {
                                             // udpate population value
                                             var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
                                             dpValue.Value = val;
-                                            ITTExist = true;
                                         } else if (key == colkey + '_Population_PP') {
                                             N_PP_val = val;
-                                            if (!ITTExist) {
-                                                var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
-                                                dpValue.Value = val;
-                                            }
                                             // udpate population vaue for PP
                                         } else if (key == colkey + '_MOA_ITT') {
                                             // udpate MOA vlaue for ITT
@@ -787,7 +783,7 @@ class ImportData {
                                                 dpMOA.Value = "ITT";
                                             //}
                                             countMOA++;
-                                        } else if (key == colkey + '_MOA_PP' && rowData["colkey + '_MOA_PP'"] && rowData["colkey + '_MOA_PP'"].toLowerCase() == "yes") {
+                                        } else if (key == colkey + '_MOA_PP') {
                                             countMOA++;
                                             if (countMOA == 0) {
                                                 // udpate MOA value for PP
@@ -810,10 +806,7 @@ class ImportData {
                                             // udpate per value for ITT
                                         } else if (key == colkey + '_n_PP') {
                                             // udpate n value for pp
-                                            if (!ITTExist && dpfvalue) {
-                                                Extract.ExcelImport.createFieldValue("n", val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
-                                            }
-                                            n_PP_va = val;
+                                            n_PP_val = val;
                                         } else if (key == colkey + '_FieldType') {
                                             // udpate field Type
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
@@ -827,7 +820,7 @@ class ImportData {
 
                                             if (rowData[colkey + '_Range_Variable_Variance']) {
                                                 var ftypeval = rowData[colkey + '_Range_Variable_Variance'];
-                                                if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1 ) {
+                                                if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1 || ['sd', 'se'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1) {
                                                     if (ftypeval == "95%CI") {
                                                         ftypeval = "95 % CI";
                                                     }
@@ -837,7 +830,9 @@ class ImportData {
                                                 }
                                             }
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
+                                            console.log(val);
                                             dpFType.Value += val;
+                                            console.log(dpFType.Value);
                                             // udpate field Type
                                             // Updated field value as well 
                                             let ftype = rowData[colkey + '_Range_Variable_Variance'];
@@ -895,9 +890,6 @@ class ImportData {
                                         }
                                         else if (key == colkey + '_Per_PP') {
                                             // udpate per value for pp
-                                            if (!ITTExist && dpfvalue) {
-                                                Extract.ExcelImport.createFieldValue("%", val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
-                                            }
                                             Per_PP_val = val;
                                         }
                                         else if (key.startsWith(colkey + '_AuthorDefinition')) {
@@ -918,8 +910,9 @@ class ImportData {
                                         }
                                     }
                                 }
-                            if (needtoCloneforMOA && ITTExist) {
+                                if (needtoCloneforMOA && true) {
                                     iterationCreatedForMOA = false;
+                                    console.log(arrClonedOset);
                                     for (var indexRow = 0; indexRow < arrClonedOset.length; indexRow++) {
                                         if (arrClonedOset[indexRow] == Tcolkey) {
                                             iterationCreatedForMOA = true;
