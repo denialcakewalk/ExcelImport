@@ -820,7 +820,7 @@ class ImportData {
 
                                             if (rowData[colkey + '_Range_Variable_Variance']) {
                                                 var ftypeval = rowData[colkey + '_Range_Variable_Variance'];
-                                                if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1 || ['sd', 'se'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1) {
+                                                if (['SD', 'SE'].indexOf(rowData[colkey + '_Range_Variable_Variance']) == -1) {
                                                     if (ftypeval == "95%CI") {
                                                         ftypeval = "95 % CI";
                                                     }
