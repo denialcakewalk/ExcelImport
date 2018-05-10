@@ -1037,6 +1037,39 @@ class ImportData {
         }
         return value;
     }
-
+    deleteEmptyOutcomeSets() {        
+        var me = this;
+        for (var key in Extract.Data.Outcomes) {
+            for (var i = 0; i < Extract.Data.Outcomes[key].OutcomeSets.length; i++) {
+                var oSet = Extract.Data.OutcomeSets[Extract.Data.Outcomes[key].OutcomeSets[i]];
+                if (me.isEmptyOutcomeSet(oSet)) {
+                    Extract.ExcelImport.deleteOutcomeSet(oSet.id);
+                }
+            }
+        }
+    }
+    isEmptyOutcomeSet(oSet) {
+        var isEmpty = true;
+        for (var i = 0; i < oSet.OutcomeGroupValues.length; i++) {
+            var ogv = Extract.ExcelImport.getEntity(Extract.EntityTypes.OutcomeGroupValues, oSet.OutcomeGroupValues[i]);
+            if (ogv) {                
+                var dpfvalue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.FIELDVALUE, "FieldValue");
+                if (!Ext.isEmpty(dpfvalue) && !Ext.isEmpty(dpfvalue.Value)) {
+                    Values = [];
+                    Values = Extract.Helper.ExcelImport(dpfvalue.Value, Extract.EntityTypes.FieldValues);
+                }
+                for (var j = 0; j < Values.length; j++) {
+                    if (!Ext.isEmpty(Values[j].Value)) {
+                        isEmpty = false
+                        break;
+                    }
+                }
+                if (!isEmpty) {
+                    break;
+                }
+            }
+        }
+        return isEmpty;
+    }
     //#endregion
 }

@@ -5435,5 +5435,37 @@ Extract.ExcelImport = {
          }
          return defaultValue;
 
+     },
+     deleteOutcomeSet: function (outSetId) {
+         var me = this;
+         for (var i = 0; i < Extract.Data.OutcomeSets[outSetId].OutcomeGroupValues.length; i++) {
+
+             var outGroupId = Extract.Data.OutcomeSets[outSetId].OutcomeGroupValues[i];
+             me.deleteOutcomeGroup(outGroupId, Extract.Data.OutcomeGroupValues[outGroupId]);
+         }
+         //Outcomeset => Sources
+         for (var key in Extract.Data.OutcomeSets[outSetId].Sources) {
+             me.deleteSourceDatapoints(Extract.Data.OutcomeSets[outSetId].Sources[key]);
+         }
+
+         //Delete Outconeset
+         Extract.Data.OutcomeSets[outSetId].isDeleted = true;         
+     },
+     deleteOutcomeGroup: function (outGroupId) {
+
+         //Outcomegroup=> Sources
+         for (var key in Extract.Data.OutcomeGroupValues[outGroupId].Sources) {
+             Extract.Helper.deleteSourceDatapoints(Extract.Data.OutcomeGroupValues[outGroupId].Sources[key]);
+         }
+         //Delete outcomegroup        
+         Extract.Data.OutcomeGroupValues[outGroupId].isDeleted = true;
+     },
+     deleteSourceDatapoints: function (source) {
+         for (var j = 0; j < source.length; j++) {
+             var dpId = source[j];
+             if (Extract.Data.Datapoints[dpId]) {                 
+                 Extract.Data.Datapoints[dpId].isDeleted = true;
+             }
+         }
      }
 }
