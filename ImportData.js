@@ -221,7 +221,7 @@ class ImportData {
     }
 
     createDatapointAddToSource(dpName, dpValue, rowNo, columnNo, sourceType, sourceId, sourceName) {
-        Extract.ExcelImport.createDatapointAddToSource(Extract.Datapoint.VALUETYPE.MEMO, dpName,
+        return Extract.ExcelImport.createDatapointAddToSource(Extract.Datapoint.VALUETYPE.MEMO, dpName,
             dpValue, Extract.Datapoint.STATE.ADDED, rowNo, columnNo, sourceType, sourceId,
             sourceName);
     }
