@@ -778,10 +778,10 @@ class ImportData {
                                         } else if (key == colkey + '_MOA_ITT') {
                                             // udpate MOA vlaue for ITT
                                             //Update MOA with ITT value
-                                            if (val != "") {
+                                            //if (val != "") {
                                                 var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
                                                 dpMOA.Value = "ITT";
-                                            }
+                                            //}
                                             countMOA++;
                                         } else if (key == colkey + '_MOA_PP') {
                                             countMOA++;
