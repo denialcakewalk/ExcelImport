@@ -599,7 +599,6 @@ Utils.getTaskIdByRefId = function (refid) {
 Utils.updatedExcelDataToFirebase = function (dataList) {
 
     dataList.forEach(function (item) {
-        debugger;
         var refId = item["refid"];
         var taskId = item["taskid"];
         var jsonData = item["jsonData"];
@@ -608,6 +607,8 @@ Utils.updatedExcelDataToFirebase = function (dataList) {
         //var convertedData = Extract.Helper.convertToNewFormat(studyData);
 
         //Update data to path
+        //refId = 4915;
+        //taskId = 6589;
         var path = Utils.getDBPath(refId, taskId);
 
         //changed the branch name to localhost for testing (in firebase)
@@ -615,7 +616,7 @@ Utils.updatedExcelDataToFirebase = function (dataList) {
         path = path.replace("localhost", "extracttest");
         path = path.replace("training", "extracttest");
         path = path.replace("production", "extracttest");
-
+        //path = path.replace("extracttest", "localhost");
         console.log(`Request created for ${path}`);
         firebase.database().ref(path).set(jsonData);
         //Extract.Core.updateToPath(path, jsonData);
