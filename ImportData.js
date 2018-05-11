@@ -842,7 +842,19 @@ class ImportData {
                                             } else {
                                                 needtoCloneforMOA = true;
                                             }
-                                        } else if (key == colkey + '_n_ITT' || key == colkey + '_n') {
+                                        }
+                                        else if (key == colkey + '_MOAValue') {
+                                            // udpate MOA vlaue for ITT
+                                            //Update MOA with ITT value
+                                            //if (val != "") {
+                                            var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
+                                            if (!Ext.isEmpty(rowData[colkey + '_MOAValue'])) {
+                                                dpMOA.Value = rowData[colkey + '_MOAValue'];
+                                            }
+                                            //}
+                                            countMOA++;
+                                        }
+                                        else if (key == colkey + '_n_ITT' || key == colkey + '_n') {
                                             if (dpfvalue) {
                                                 Extract.ExcelImport.createFieldValue("n", val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                             }
@@ -945,6 +957,9 @@ class ImportData {
                                                         } else if (ftypeval2.indexOf("Median") > -1) {
                                                             ftype = "Median-TotalRange";
                                                         }
+                                                    }
+                                                    if (rowData[colkey + '_SD_SE'].indexOf("-") > -1) {
+                                                        lowHigh = rowData[colkey + '_SD_SE'];
                                                     }
 
                                                     if (ftype.indexOf('-') > -1 && lowHigh != "") {
