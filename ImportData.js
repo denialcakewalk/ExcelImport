@@ -193,7 +193,7 @@ class ImportData {
 
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "168015")) { // || refIds[i] == "926565" , "2281657"
+            if (true || (refIds[i] == "2281657")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -734,8 +734,8 @@ class ImportData {
                                     field_Value = "n/%";
 
                                     var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
-                                    dpFType.Value = field_Value;
-                                    dpFType.type = field_Type;
+                                    dpFType.Value = field_Value.trim();
+                                    dpFType.type = field_Type.trim();
                                 }
                                 else {
                                     field_Type = fieldTypeHeader;
@@ -747,9 +747,9 @@ class ImportData {
                                     } else {
                                         var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
                                         if (field_Type && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(field_Type.toLowerCase()) > -1) { 
-                                            dpFType.type = field_Type;
+                                            dpFType.type = field_Type.trim();
                                         } else {
-                                            dpFType.Value = field_Type;
+                                            dpFType.Value = field_Type.trim();
                                         }
                                     }
 
@@ -869,6 +869,7 @@ class ImportData {
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
                                                                                         
                                             dpFType.Value += val;
+                                            dpFType.Value = (dpFType.Value).trim();
                                             console.log(dpFType.Value);
                                             var ftypeval2 = dpFType.Value;
                                             // udpate field Type
