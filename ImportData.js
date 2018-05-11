@@ -218,10 +218,15 @@ class ImportData {
 
             }
         }
-
     }
 
     createDatapointAddToSource(dpName, dpValue, rowNo, columnNo, sourceType, sourceId, sourceName) {
+        if (dpName == undefined || dpName == null || dpName == "") {
+            dpName = "";
+        }
+        if (dpValue == undefined || dpValue == null || dpValue == "") {
+            dpValue = "";
+        }
         return Extract.ExcelImport.createDatapointAddToSource(Extract.Datapoint.VALUETYPE.MEMO, dpName,
             dpValue, Extract.Datapoint.STATE.ADDED, rowNo, columnNo, sourceType, sourceId,
             sourceName);
@@ -258,11 +263,35 @@ class ImportData {
 
     createParticipants(grpObj, grpRow) {
         let mlNum = grpRow['Male |#'];
+        if (!mlNum) {
+            mlNum = "";
+        }
         let mlPer = grpRow['Male |%'];
+        if (!mlPer) {
+            mlPer = "";
+        }
 
         Extract.ExcelImport.addParticipants(grpObj, "Male", mlNum, mlPer, "");
-        Extract.ExcelImport.addParticipants(grpObj, "Female", "", "", "");
-        Extract.ExcelImport.addParticipants(grpObj, "Unknown", "", "", "");
+
+        let fmlNum = grpRow['Female |#'];        
+        if (!fmlNum) {
+            fmlNum = "";
+        }
+        let fmlPer = grpRow['Female |%'];
+        if (!fmlPer) {
+            fmlPer = "";
+        }
+        Extract.ExcelImport.addParticipants(grpObj, "Female", fmlNum, fmlPer, "");
+
+        let unkNum = grpRow['Unknown |#'];
+        if (!unkNum) {
+            unkNum = "";
+        }
+        let unkPer = grpRow['Unknown |%'];
+        if (!unkPer) {
+            unkPer = "";
+        }
+        Extract.ExcelImport.addParticipants(grpObj, "Unknown", unkNum, unkPer, "");
     }
 
     createAdditionalInfo(grpId, grpRow) {
@@ -284,10 +313,12 @@ class ImportData {
         this.createDatapointAddToSource("n Value", popRand, 0, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
         this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
-        this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Type", "Completed/Finished", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Value", popCF, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        if (popCF) {
+            this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+            this.createDatapointAddToSource("n Type", "Completed/Finished", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+            this.createDatapointAddToSource("n Value", popCF, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+            this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        }
     }
 
     createAgePopulationFieldType(grpId, grpRow) {
@@ -362,7 +393,7 @@ class ImportData {
     //#region Intervention Set
     createInterventionSet(grpId, grpRow) {
         let intNm = grpRow['Intervention Name'];
-        let lstIntNm = intNm.split('/');
+        let lstIntNm = intNm.split(/(?:\+|\/)+/); //intNm.split('/');
         let intDU = grpRow['Intervention Dose Unit'];
         let intDV = grpRow['Intervention Dose Value'];
         let intFU = grpRow['Intervention Frequency Unit'];
@@ -372,8 +403,8 @@ class ImportData {
             lstIntDV = intDV.split('/');
         }
         for (let i = 0; i < lstIntNm.length; i++) {
-            let iSet = Extract.ExcelImport.createInterventionSets(lstIntNm[i], grpId, "", Cases.CaseNo.Therapy_Drug);
-            this.createInterventionSetLevelFields(iSet.id, lstIntNm[i], false, grpRow);
+            let iSet = Extract.ExcelImport.createInterventionSets(lstIntNm[i].trim(), grpId, "", Cases.CaseNo.Therapy_Drug);
+            this.createInterventionSetLevelFields(iSet.id, lstIntNm[i].trim(), false, grpRow);
             let phId = "";
             if (Extract.Helper.getEntityAsArray(Extract.EntityTypes.Phases).length > 0) {
                 phId = Extract.Helper.getEntityAsArray(Extract.EntityTypes.Phases)[0].id;
@@ -387,34 +418,34 @@ class ImportData {
         }
 
         let intNmBkbn = grpRow['Backbone Intervention Name'];
-        let lstNmBkbn = intNmBkbn.split('+');
-        let intBDU = grpRow['Backbone Dose Unit'];
-        let intBDV = grpRow['Backbone Dose Value'];
-        let intBFU = grpRow['Backbone Frequency Unit'];
-        let intBFV = grpRow['Backbone Frequency Value'];
-        let lstIntBDV = [];
-        if (intBDV) {
-            lstIntBDV = intBDV.split('+');
-        }
-        for (let i = 0; i < lstNmBkbn.length; i++) {
-            let iSet = Extract.ExcelImport.createInterventionSets(lstNmBkbn[i], grpId, "", Cases.CaseNo.Therapy_Drug);
-            this.createInterventionSetLevelFields(iSet.id, lstNmBkbn[i], true, grpRow);
-            let phId = "";
-            if (Extract.Helper.getEntityAsArray(Extract.EntityTypes.Phases).length > 0) {
-                phId = Extract.Helper.getEntityAsArray(Extract.EntityTypes.Phases)[0].id;
+        if (intNmBkbn) {
+            let lstNmBkbn = intNmBkbn.split(/(?:\+|\/)+/); //intNmBkbn.split('+');
+            let intBDU = grpRow['Backbone Dose Unit'];
+            let intBDV = grpRow['Backbone Dose Value'];
+            let intBFU = grpRow['Backbone Frequency Unit'];
+            let intBFV = grpRow['Backbone Frequency Value'];
+            let lstIntBDV = [];
+            if (intBDV) {
+                lstIntBDV = intBDV.split('+');
             }
-            let int = this.createIntervention(grpId, iSet.id, phId);
-            this.createInterventionLevelFields(int.id);
-            let dfv = (lstIntBDV.length > i) ? lstIntBDV[i] : "";
-            this.createDosage(int.id, intBDU, dfv);
-            this.createFrequency(int.id, intBFU, intBFV);
-            this.createTimepoint(int.id);
+            for (let i = 0; i < lstNmBkbn.length; i++) {
+                let iSet = Extract.ExcelImport.createInterventionSets(lstNmBkbn[i], grpId, "", Cases.CaseNo.Therapy_Drug);
+                this.createInterventionSetLevelFields(iSet.id, lstNmBkbn[i], true, grpRow);
+                let phId = "";
+                if (Extract.Helper.getEntityAsArray(Extract.EntityTypes.Phases).length > 0) {
+                    phId = Extract.Helper.getEntityAsArray(Extract.EntityTypes.Phases)[0].id;
+                }
+                let int = this.createIntervention(grpId, iSet.id, phId);
+                this.createInterventionLevelFields(int.id);
+                let dfv = (lstIntBDV.length > i) ? lstIntBDV[i] : "";
+                this.createDosage(int.id, intBDU, dfv);
+                this.createFrequency(int.id, intBFU, intBFV);
+                this.createTimepoint(int.id);
+            }
         }
     }
 
     createInterventionSetLevelFields(iSetId, intName, isBackboneIntervention, grpRow) {
-        let intNm = grpRow['Intervention Name'];
-        let intNmBkbn = grpRow['Backbone Intervention Name'];
         this.createDatapointAddToSource("Treatment Tag", (isBackboneIntervention ? "Backbone Intervention" : "Intervention"), 1, 20, Extract.EntityTypes.InterventionSets, iSetId, Extract.Groups.SOURCENAMES.OTHERS);
         this.createDatapointAddToSource("Intervention Name", intName, 1, 1, Extract.EntityTypes.InterventionSets, iSetId, Extract.Groups.SOURCENAMES.OTHERS);
         this.createDatapointAddToSource("Manufacturer", "", 1, 12, Extract.EntityTypes.InterventionSets, iSetId, Extract.Groups.SOURCENAMES.OTHERS);
