@@ -1892,7 +1892,7 @@ Extract.Helper = {
         var phases = Extract.Helper.getEntityAsArray('Phases');
         for (let i = 0; i < phases.length; i++) {
             var phase = phases[i];
-            if (phase.description == description && phase.description == description && phase.descriptionHigh == descriptionHigh && phase.drugName == drugName && phase.end == end && phase.endUnit == endUnit && phase.fieldType == fieldType && phase.fieldTypeValue == fieldTypeValue && phase.name == name && phase.start == start && phase.startUnit == startUnit && phase.type == type) {
+            if (phase.description == description && phase.description == description && phase.descriptionHigh == descriptionHigh && phase.drugName == drugName && phase.end == end && phase.endUnit == endUnit  && phase.name == name && phase.start == start && phase.startUnit == startUnit && phase.type == type) {
                 existingPhase = phase;
                 break;
             }

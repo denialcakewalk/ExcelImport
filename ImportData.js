@@ -193,7 +193,7 @@ class ImportData {
 
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "2281657")) { // || refIds[i] == "926565" , "2281657"
+            if (true && (refIds[i] == "2261556")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -571,6 +571,7 @@ class ImportData {
                                 for (var key in tempdata) {
                                     if (tempdata[key] != "ResultName") {
                                         if (key.indexOf('_Population') > 0) {
+                                            console.log(refId);
                                             // allow to add outcome becuase it is not exist for this reference 
                                             var oid = me.getoutcomeidbyName(outcomeNames, tempdata[key]);
                                             var osetid = me.getoutcomesetidbyoutcomeName(outcomeNames, outcome_osets, tempdata[key], key, obj_outcome_outcomeset);
@@ -652,8 +653,9 @@ class ImportData {
                                         let tempdata = headerData[headerRow];
                                         for (var key in tempdata) {
                                             if (tempdata[key] != "ResultName") {
-                                                if (key.indexOf('_Population') > 0 || ((key.indexOf('_n') > 0 || key.indexOf('_FieldType') > 0)  && outcomeSheetNo == 1 ) ) {
+                                                if (key.indexOf('_') > 0 || key.indexOf('_Population') > 0 || ((key.indexOf('_n') > 0 || key.indexOf('_FieldType') > 0)  && outcomeSheetNo == 1 ) ) {
                                                     // allow to add outcome becuase it is not exist for this reference 
+                                                    console.log(refId);
                                                     var oid = me.getoutcomeidbyName(outcomeNames, tempdata[key]);
                                                     var osetid = me.getoutcomesetidbyoutcomeName(outcomeNames, outcome_osets, tempdata[key], OtimepointKey + key, obj_outcome_outcomeset);
                                                     var outSet = Extract.ExcelImport.getEntity(Extract.EntityTypes.OutcomeSets, osetid);
@@ -711,26 +713,41 @@ class ImportData {
                         
 
                         if (timepoint != 0) {
-                            var tempTimepointMean = Extract.ExcelImport.phaseExist("", timepoint, "Week(s)", "", "", "timepoint", "=", "", "", "", "", "", "");
-                            if (tempTimepointMean == "") {
-                                timepoint_mean = Extract.ExcelImport.createPhaseAddToSource("", timepoint, "Week(s)", "", "", "timepoint", "=", "", "", "", "", "", "");
-                            }
-                            else {
-                                timepoint_mean = tempTimepointMean;
-                            }
-
-                            var tempTimepointStandard = Extract.ExcelImport.phaseExist("", "", "Baseline", timepoint, "Week(s)", "timepoint", "Total", "", "", "", "", "", "");
-                            if (tempTimepointStandard == "") {
-                                timepoint_standard = Extract.ExcelImport.createPhaseAddToSource("", "", "Baseline", timepoint, "Week(s)", "timepoint", "Total", "", "", "", "", "", "");
-                            } else {
-                                timepoint_standard = tempTimepointStandard;
+                            var baseline = rowData["LowTimepoint"] ? rowData["LowTimepoint"] : "";
+                            baseline = baseline.toString().trim();
+                            timepoint = timepoint.toString().trim();
+                            var tempTimepointStandard = "";
+                            if (Ext.isEmpty(baseline) && !Ext.isEmpty(timepoint)) {
+                                // only have high value 
+                                var tempTimepointTemp = Extract.ExcelImport.phaseExist("", timepoint, "Week(s)", "", "", "timepoint", "=", "", "", "", "", "", "");
+                                if (Ext.isEmpty(tempTimepointTemp)) {
+                                    timepoint_standard = Extract.ExcelImport.createPhaseAddToSource("", timepoint, "Week(s)", "", "", "timepoint", "=", "", "", "", "", "", "");
+                                }
+                                else {
+                                    timepoint_standard = tempTimepointTemp;
+                                }
+                            } else if(!Ext.isEmpty(baseline) && !Ext.isEmpty(timepoint)){
+                                if (baseline.toLowerCase() != "baseline") {
+                                    var tempTimepointTemp = Extract.ExcelImport.phaseExist("", baseline, "Week(s)", timepoint, "Week(s)", "timepoint", "Total", "", "", "", "", "", "");
+                                    if (Ext.isEmpty(tempTimepointTemp)) {
+                                        timepoint_standard = Extract.ExcelImport.createPhaseAddToSource("", baseline, "Week(s)", timepoint, "Week(s)", "timepoint", "Total", "", "", "", "", "", "");
+                                    } else {
+                                        timepoint_standard = tempTimepointTemp;
+                                    }
+                                } else {
+                                    var tempTimepointTemp = Extract.ExcelImport.phaseExist("", "", "Baseline", timepoint, "Week(s)", "timepoint", "Total", "", "", "", "", "", "");
+                                    if (Ext.isEmpty(tempTimepointTemp)) {
+                                        timepoint_standard = Extract.ExcelImport.createPhaseAddToSource("", "", "Baseline", timepoint, "Week(s)", "timepoint", "Total", "", "", "", "", "", "");
+                                    } else {
+                                        timepoint_standard = tempTimepointTemp;
+                                    }
+                                }
                             }
                         }
                     } else {
-                        debugger
                         if (true || timepoint) {
                             var tempTimepointStandard = Extract.ExcelImport.phaseExist("", "", "Baseline", "", "", "timepoint", "=", "", "", "", "", "", "");
-                            if (tempTimepointStandard == "") {
+                            if (Ext.isEmpty(tempTimepointStandard)) {
                                 timepoint_standard = Extract.ExcelImport.createPhaseAddToSource("", "", "Baseline", "", "", "timepoint", "=", "", "", "", "", "", "");
                             } else {
                                 timepoint_standard = tempTimepointStandard;
@@ -753,7 +770,7 @@ class ImportData {
                                     var oc = Extract.ExcelImport.getEntity(Extract.EntityTypes.Outcomes, oid);
                                     var oset = Extract.ExcelImport.getEntity(Extract.EntityTypes.OutcomeSets, osetid);
                                     var ogv = Extract.ExcelImport.getOutcomeGroupValuesByGroupId(oset, groupId);
-                                    if (groupId) {
+                                    if (!Ext.isEmpty(groupId) && !Ext.isEmpty(ogv) && ogv && groupId && ogv["id"]) {
                                         var dpfvalue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.FIELDVALUE, "FieldValue");
                                     }
                                 }
@@ -795,7 +812,7 @@ class ImportData {
                                 // Get fieldValue for clone 
 
                                 //update ogv timepoint (if fielldtype== standard then use timepoint standard else timepointMean
-                                if (timepoint_standard && timepoint_standard["id"] && ogv["timepoint"]) {
+                                if (timepoint_standard && timepoint_standard["id"]) {
                                     ogv.timepoint.id = timepoint_standard.id;
                                 }
                                 var udpatedFiedlType = false;
@@ -806,13 +823,22 @@ class ImportData {
                                         let val = rowData[key];
                                         if (key == colkey + '_Population_ITT' || key == colkey + '_Population') {
                                             // udpate population value
-                                            var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
-                                            dpValue.Value = val;
-                                            var defaultName = this.getDefaultPopulationName(ogv.groupId, val.trim());
-                                            if (!Ext.isEmpty(defaultName)) {
-                                                var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
-                                                dpName.Value = defaultName;
-                                            }
+                                            this.updateParticipants(ogv, rowData, key, colkey);
+                                            //var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
+                                            //dpValue.Value = val;
+                                            //var defaultName = "";
+                                            //if (!Ext.isEmpty(val)) {
+                                            //    defaultName = this.getDefaultPopulationName(ogv.groupId, val.trim());
+                                            //}
+                                            //defaultName = defaultName.trim();
+                                            //var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
+                                            //if (!Ext.isEmpty(defaultName)) {                                               
+                                            //    dpName.Value = defaultName;
+                                            //}
+                                            //else {
+                                            //    dpName.Value = "Participants";
+                                            //}
+
                                         } else if (key == colkey + '_Population_PP') {
                                             N_PP_val = val;
                                             var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
@@ -849,12 +875,27 @@ class ImportData {
                                             //if (val != "") {
                                             var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
                                             if (!Ext.isEmpty(rowData[colkey + '_MOAValue'])) {
-                                                dpMOA.Value = rowData[colkey + '_MOAValue'];
+                                                let shortName = rowData[colkey + '_MOAValue']
+                                                if (Ext.isEmpty(shortName)) {
+                                                    shortName = "";
+                                                }
+                                                if (shortName.toLowerCase() == "grab-it ") {
+                                                    shortName = "Grab-it";
+
+                                                } else if (shortName.toLowerCase() == "life table") {
+                                                    shortName = "Life Table"
+                                                } else if (shortName.toLowerCase() == "included non-compliant") {
+                                                    shortName = "Incl"
+                                                } else if (shortName.toLowerCase() == "excluded non-compliant") {
+                                                    shortName = "Excl"
+                                                }
+                                                dpMOA.Value = shortName;
                                             }
                                             //}
                                             countMOA++;
                                         }
                                         else if (key == colkey + '_n_ITT' || key == colkey + '_n') {
+                                            this.updateParticipants(ogv, rowData, key, colkey);
                                             if (dpfvalue) {
                                                 Extract.ExcelImport.createFieldValue("n", val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                             }
@@ -868,6 +909,7 @@ class ImportData {
                                             // udpate n value for pp
                                             n_PP_val = val;
                                         } else if (key == colkey + '_FieldType') {
+                                            this.updateParticipants(ogv, rowData, key, colkey);
                                             // udpate field Type
                                             var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
                                             if (val && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(val.toLowerCase()) > -1) {
@@ -878,7 +920,19 @@ class ImportData {
                                                 dpFType.Value = val;
                                             }
                                             
-                                        } else if (!udpatedFiedlType && (key == colkey + '_Range_Variable_Variance')) {
+                                        } else if (key == colkey + '_FieldTypeValue') {
+                                            // udpate field Type
+                                            var dpFType = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "FieldType");
+                                            
+                                            val = val.trim();
+                                            if (Ext.isEmpty(dpFType.Value)) {
+                                                dpFType.Value = val;
+                                            } else {
+                                                dpFType.Value = dpFType.Value + " " + val;
+                                            }
+                                        }
+
+                                        else if (!udpatedFiedlType && (key == colkey + '_Range_Variable_Variance')) {
                                             udpatedFiedlType = true; // Update for fieldType 
                                             val = "";
                                             //if (rowData[colkey + '_Mean']) {
@@ -958,7 +1012,7 @@ class ImportData {
                                                             ftype = "Median-TotalRange";
                                                         }
                                                     }
-                                                    if (rowData[colkey + '_SD_SE'].indexOf("-") > -1) {
+                                                    if (rowData[colkey + '_SD_SE'] && rowData[colkey + '_SD_SE'].indexOf("-") > -1) {
                                                         lowHigh = rowData[colkey + '_SD_SE'];
                                                     }
 
@@ -1105,6 +1159,7 @@ class ImportData {
         ///osetids.push(osetid);
         if (COL_NUMBER.length > 0) {
             if (obj_outcome_outcomeset[COL_NUMBER[0]]) {
+                temp_osetid = obj_outcome_outcomeset[COL_NUMBER[0]][1];
                 obj_outcome_outcomeset[COL_NUMBER[0]] = [temp_oid, temp_osetid]; // 1st is oid and second is osetid
             } else {
                 obj_outcome_outcomeset[COL_NUMBER[0]] = []
@@ -1177,6 +1232,26 @@ class ImportData {
             }
         }
         return isEmpty;
+    }
+    updateParticipants(ogv, rowData, key, colkey) {
+         var val = "";
+        if (key == colkey + '_Population_ITT' || key == colkey + '_Population') {
+            val = rowData[key];
+        } 
+        var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
+        dpValue.Value = val;
+        var defaultName = "";
+        if (!Ext.isEmpty(val)) {
+            defaultName = this.getDefaultPopulationName(ogv.groupId, val.trim());
+        }
+        defaultName = defaultName.trim();
+        var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
+        if (!Ext.isEmpty(defaultName)) {
+            dpName.Value = defaultName;
+        }
+        else {
+            dpName.Value = "Participants";
+        }
     }
     getDefaultPopulationName(groupId, val) {
         var defaultName = '';

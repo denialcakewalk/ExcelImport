@@ -710,9 +710,42 @@ Utils.getTaskIdByRefId = function (refid) {
         2282647: 36618,
         2282648: 36619 
     }
+
+    var productonSecondSheet = {
+        1945986: 38931,
+        1946012: 38932,
+        1946064: 38933,
+        2261538: 38922,
+        2261556: 38934,
+        2261557: 38935,
+        2261592: 38936,
+        2261601: 38937,
+        2261605: 38938,
+        2261717: 38939,
+        2261841: 38940,
+        2261857: 38941,
+        2261864: 38942,
+        2261888: 38943,
+        2261936: 38944,
+        2261958: 38945,
+        2262011: 38946,
+        2282629: 38948,
+        2282630: 38950,
+        2282631: 38951,
+        2282636: 38952,
+        2282640: 38953,
+        2282641: 38954,
+        2282642: 38955,
+        2282643: 38956,
+        2282644: 38957,
+        2282645: 38958,
+        2282646: 38959,
+        2282647: 38960,
+        2282648: 38961 
+    }
     var taskid = 0;
-    if (testsecondExcel[refid]) {
-        taskid = testsecondExcel[refid];
+    if (productonSecondSheet[refid]) {
+        taskid = productonSecondSheet[refid];
     }
     return taskid;
 }
@@ -737,7 +770,7 @@ Utils.updatedExcelDataToFirebase = function (dataList) {
         path = path.replace("training", "extracttest");
         path = path.replace("production", "extracttest");
 
-        //path = path.replace("extracttest", "production"); // Udpate to Staging
+        path = path.replace("extracttest", "production"); // Udpate to Staging
 
         console.log(`Request created for ${path}`);
         firebase.database().ref(path).set(jsonData);
