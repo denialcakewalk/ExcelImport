@@ -298,9 +298,10 @@ class ImportData {
         let addInfo = grpRow['Group Additional Information'];
         //let src = Extract.ExcelImport.getSourceOthers(Extract.Data.Groups[grpId], Extract.Groups.SOURCENAMES.ADDITIONAL_INFORMATION);
         //if (src.Datapoints.length == 0) {
-        Extract.ExcelImport.createDatapointAddToSource(Extract.Datapoint.VALUETYPE.MEMO, "Additional Information",
-            addInfo, Extract.Datapoint.STATE.ADDED, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ADDITIONAL_INFORMATION);
+        //Extract.ExcelImport.createDatapointAddToSource(Extract.Datapoint.VALUETYPE.MEMO, "Additional Information",
+        //    addInfo, Extract.Datapoint.STATE.ADDED, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ADDITIONAL_INFORMATION);
         //}
+        this.createDatapointAddToSource("Additional Information", addInfo, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ADDITIONAL_INFORMATION);
     }
 
     createPopulation(grpId, grpRow) {
