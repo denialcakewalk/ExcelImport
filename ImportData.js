@@ -191,13 +191,15 @@ class ImportData {
             }
         }
 
+        console.log("Import started...");
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true && (refIds[i] == "2281655")) { // || refIds[i] == "926565" , "2281657"
+            if (true || (refIds[i] == "2281655")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
-                let grp = Extract.ExcelImport.createGroups("Total Population");
-                grp.GroupType = "Total";
+                //let grp = Extract.ExcelImport.createGroups("Total Population");
+                //grp.GroupType = "Total";
+                this.createTotalPopulationGroup();
                 for (let j = 0; j < rows.length; j++) {
                     //Soheb process here.                
                     //console.log(rows[j]);
@@ -218,6 +220,8 @@ class ImportData {
 
             }
         }
+
+        console.log("Import finished successfully");
     }
 
     createDatapointAddToSource(dpName, dpValue, rowNo, columnNo, sourceType, sourceId, sourceName) {
@@ -235,18 +239,24 @@ class ImportData {
     //#region Group Level
 
     createTotalPopulationGroup() {
+        
         let grp = Extract.ExcelImport.createGroups("Total Population");
         grp.GroupType = "Total";
 
-        this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Type", "Randomized", 0, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createPopulation(grp.id, {});
+        this.createAgePopulation(grp.id, {});
+        this.createGenderPopulation(grp.id, {});
+        //this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("n Type", "Randomized", 0, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
-        this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Type", "na", 0, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("Default", false, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("n Type", "na", 1, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("n Value", "na", 1, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+
+
     }
 
     createGroup(grpRow) {
@@ -329,7 +339,7 @@ class ImportData {
         if (popCF == undefined || popCF == null || popCF == "") {
             popCF = "na";
         }
-        let src = Extract.ExcelImport.getSourceOthers(Extract.Data.Groups[grpId], Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        //let src = Extract.ExcelImport.getSourceOthers(Extract.Data.Groups[grpId], Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
         this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
         this.createDatapointAddToSource("n Type", "Randomized", 0, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
@@ -388,9 +398,7 @@ class ImportData {
                 let dp = this.createDatapointAddToSource("Age Field Value", "", 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION_AGE);
                 for (var i = 0; i < fldTypeValue.length; i++) {
                     //name, value, source, dpId, type, fieldToUpdate
-                    if (dp) {   // added by sumit 
-                        Extract.ExcelImport.createFieldValue(fldTypeValue[i].name, fldTypeValue[i].value, "GroupAgeFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
-                    }
+                    Extract.ExcelImport.createFieldValue(fldTypeValue[i].name, fldTypeValue[i].value, "GroupAgeFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
                 }
                 this.createDatapointAddToSource("Unit", "", 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION_AGE);
 
@@ -400,12 +408,18 @@ class ImportData {
 
     createAgePopulation(grpId, grpRow) {
         let popRand = grpRow['Population|Randomized'];
+        if (popRand == undefined || popRand == null || popRand == "") {
+            popRand = "na";
+        }
         this.createDatapointAddToSource("n Type", "Randomized", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.AGE_POPULATION);
         this.createDatapointAddToSource("n Value", popRand, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.AGE_POPULATION);
     }
 
     createGenderPopulation(grpId, grpRow) {
         let popRand = grpRow['Population|Randomized'];
+        if (popRand == undefined || popRand == null || popRand == "") {
+            popRand = "na";
+        }
         this.createDatapointAddToSource("n Type", "Randomized", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.GENDER_POPULATION);
         this.createDatapointAddToSource("n Value", popRand, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.GENDER_POPULATION);
     }
@@ -504,16 +518,19 @@ class ImportData {
         if (dosageUnit == undefined) {
             dosageUnit = "";
         }
+
+        let dsgFldtyp = "";
+        if (fieldValue) {
+            dsgFldtyp = "Fixed";
+        }
         
         this.createDatapointAddToSource("Protocol", "Protocol", 1, 1, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         this.createDatapointAddToSource("Dosage Type", "Standard", 1, 9, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
-        this.createDatapointAddToSource("Dosage Field Type", "Fixed", 1, 2, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
+        this.createDatapointAddToSource("Dosage Field Type", dsgFldtyp, 1, 2, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         let dp = this.createDatapointAddToSource("Dosage Field Value", "", 1, 3, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         if (fieldValue) {
             //name, value, source, dpId, type, fieldToUpdate
-            if (dp) { // added by sumit
-                Extract.ExcelImport.createFieldValue('Fixed', fieldValue, "GroupDosageFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
-            }
+            Extract.ExcelImport.createFieldValue('Fixed', fieldValue, "GroupDosageFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
         }
         this.createDatapointAddToSource("Dosage Unit", dosageUnit, 1, 4, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         this.createDatapointAddToSource("Concentration", "", 1, 12, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
