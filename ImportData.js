@@ -193,7 +193,7 @@ class ImportData {
 
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "2281655")) { // || refIds[i] == "926565" , "2281657"
+            if (true && (refIds[i] == "2281655")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -929,7 +929,12 @@ class ImportData {
                                                                 ftypeval = "Total Range";
                                                             }
                                                             if (ftypeval && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(ftypeval.toLowerCase()) == -1) {
-                                                                val += " [(" + ftypeval + ")]";
+                                                                if (val.indexOf('SD') > -1 || val.indexOf('SE') > -1) {
+                                                                    val += " [" + ftypeval + "]";
+                                                                } else {
+                                                                    val += " [(" + ftypeval + ")]";
+                                                                }
+                                                                
                                                             }
 
                                                         } else {
@@ -994,6 +999,9 @@ class ImportData {
                                                     } else {
                                                         val = rowData[colkey + '_SD_SE'];
                                                         if (val && val != "") {
+                                                            console.log(val);
+                                                            val = this.roundtoDecimal(val, 2);
+                                                            console.log(val);
                                                             Extract.ExcelImport.createFieldValue(ftype, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                                         }
                                                     }
@@ -1255,7 +1263,21 @@ class ImportData {
         }
         return val;
     }
-
+    roundtoDecimal(val, decimalpoint) {
+        if (!Ext.isEmpty(val)) {
+            var per = parseFloat(val);
+            var fractionlength = per.toString().indexOf('.') > -1 ? per.toString().split(".")[1].length : 0;
+            if (fractionlength > 0) {
+                if (fractionlength > 1) {
+                    fractionlength = 2;
+                }
+                per = fractionlength >= 0 ? per.toFixed(fractionlength) : per;
+                return per;
+                 
+            } 
+        }
+        return val;
+    }
     getDefaultPopulationName(groupId, val) {
         var defaultName = '';
         var Groups = Extract.Helper.getEntityAsArray(Extract.EntityTypes.Groups);
