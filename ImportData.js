@@ -234,6 +234,21 @@ class ImportData {
 
     //#region Group Level
 
+    createTotalPopulationGroup() {
+        let grp = Extract.ExcelImport.createGroups("Total Population");
+        grp.GroupType = "Total";
+
+        this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Type", "Randomized", 0, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+
+        this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Type", "na", 0, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("Default", false, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+    }
+
     createGroup(grpRow) {
         let grpNm = grpRow["Group Name & Display Name"];
         let acrSrcPop = grpRow["Acronym/Source Population"];
@@ -306,7 +321,13 @@ class ImportData {
 
     createPopulation(grpId, grpRow) {
         let popRand = grpRow['Population|Randomized'];
+        if (popRand == undefined || popRand == null || popRand == "") {
+            popRand = "na";
+        }
         let popCF = grpRow['Population|Completed/Finished'];
+        if (popCF == undefined || popCF == null || popCF == "") {
+            popCF = "na";
+        }
         let src = Extract.ExcelImport.getSourceOthers(Extract.Data.Groups[grpId], Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
         this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
@@ -314,12 +335,11 @@ class ImportData {
         this.createDatapointAddToSource("n Value", popRand, 0, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
         this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
-        if (popCF) {
-            this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-            this.createDatapointAddToSource("n Type", "Completed/Finished", 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-            this.createDatapointAddToSource("n Value", popCF, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-            this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        }
+        this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);        
+        this.createDatapointAddToSource("n Type", (popCF == "na" ? "na" : "Completed/Finished"), 1, 1, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Value", popCF, 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+
     }
 
     createAgePopulationFieldType(grpId, grpRow) {
