@@ -389,9 +389,7 @@ class ImportData {
                 let dp = this.createDatapointAddToSource("Age Field Value", "", 1, 2, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION_AGE);
                 for (var i = 0; i < fldTypeValue.length; i++) {
                     //name, value, source, dpId, type, fieldToUpdate
-                    if (dp) {   // added by sumit 
-                        Extract.ExcelImport.createFieldValue(fldTypeValue[i].name, fldTypeValue[i].value, "GroupAgeFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
-                    }
+                    Extract.ExcelImport.createFieldValue(fldTypeValue[i].name, fldTypeValue[i].value, "GroupAgeFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
                 }
                 this.createDatapointAddToSource("Unit", "", 1, 3, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION_AGE);
 
@@ -505,16 +503,19 @@ class ImportData {
         if (dosageUnit == undefined) {
             dosageUnit = "";
         }
+
+        let dsgFldtyp = "";
+        if (fieldValue) {
+            dsgFldtyp = "Fixed";
+        }
         
         this.createDatapointAddToSource("Protocol", "Protocol", 1, 1, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         this.createDatapointAddToSource("Dosage Type", "Standard", 1, 9, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
-        this.createDatapointAddToSource("Dosage Field Type", "Fixed", 1, 2, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
+        this.createDatapointAddToSource("Dosage Field Type", dsgFldtyp, 1, 2, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         let dp = this.createDatapointAddToSource("Dosage Field Value", "", 1, 3, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         if (fieldValue) {
             //name, value, source, dpId, type, fieldToUpdate
-            if (dp) { // added by sumit
-                Extract.ExcelImport.createFieldValue('Fixed', fieldValue, "GroupDosageFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
-            }
+            Extract.ExcelImport.createFieldValue('Fixed', fieldValue, "GroupDosageFieldValue", dp.id, Extract.EntityTypes.Datapoints, "Value");
         }
         this.createDatapointAddToSource("Dosage Unit", dosageUnit, 1, 4, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
         this.createDatapointAddToSource("Concentration", "", 1, 12, Extract.EntityTypes.Interventions, intId, Extract.Groups.SOURCENAMES.DOSAGE);
