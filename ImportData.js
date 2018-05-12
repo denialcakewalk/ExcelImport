@@ -196,8 +196,9 @@ class ImportData {
             if (true || (refIds[i] == "168015")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
-                let grp = Extract.ExcelImport.createGroups("Total Population");
-                grp.GroupType = "Total";
+                //let grp = Extract.ExcelImport.createGroups("Total Population");
+                //grp.GroupType = "Total";
+                this.createTotalPopulationGroup();
                 for (let j = 0; j < rows.length; j++) {
                     //Soheb process here.                
                     //console.log(rows[j]);
@@ -243,10 +244,10 @@ class ImportData {
         this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
         this.createDatapointAddToSource("Default", true, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
 
-        this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Type", "na", 0, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("n Value", "na", 0, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
-        this.createDatapointAddToSource("Default", false, 0, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("Population Type", "Participant", 1, 4, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Type", "na", 1, 1, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("n Value", "na", 1, 2, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+        this.createDatapointAddToSource("Default", false, 1, 3, Extract.EntityTypes.Groups, grp.id, Extract.Groups.SOURCENAMES.ARM_POPULATION);
     }
 
     createGroup(grpRow) {
