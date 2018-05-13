@@ -194,7 +194,7 @@ class ImportData {
         console.log("Import started...");
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "2281655")) { // || refIds[i] == "926565" , "2281657"
+            if (true || (refIds[i] == "168015")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 //let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -996,13 +996,15 @@ class ImportData {
                                                         } else if (ftypeval2.indexOf("Median") > -1) {
                                                             ftype = "Median-IQR";
                                                         }
-                                                    } else if (ftype.toLowerCase() == "range" && (variableRange.length > 1 && variableRange[0] )) {
-                                                        if (ftypeval2.indexOf("Mean") > -1) {
-                                                            ftype = variableRange[0] + "-TotalRange";
-                                                        } else if (ftypeval2.indexOf("Median") > -1) {
-                                                            ftype = variableRange[0] + "-TotalRange";
-                                                        }
-                                                    } else if (ftype.toLowerCase() == "range") {
+                                                    }
+                                                    //else if (ftype.toLowerCase() == "range" && (variableRange.length > 1 && variableRange[0])) {
+                                                    //    if (ftypeval2.indexOf("Mean") > -1) {
+                                                    //        ftype = variableRange[0] + "-TotalRange";
+                                                    //    } else if (ftypeval2.indexOf("Median") > -1) {
+                                                    //        ftype = variableRange[0] + "-TotalRange";
+                                                    //    }
+                                                    //}
+                                                    else if (ftype.toLowerCase() == "range") {
                                                         let FieldType1 = rowData[colkey + '_FieldType'];
                                                         if (ftypeval2.indexOf("Mean") > -1) {
                                                             ftype = "Mean-TotalRange";
@@ -1216,22 +1218,57 @@ class ImportData {
                 var Values = [];
                 // Update total population with "randamized" and na 
                 var group = Extract.ExcelImport.getEntity("Groups", ogv.groupId);
-                let dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
-                if (dpValue) {
-                    if (Ext.isEmpty(dpValue.Value)) {
-                        dpValue.Value = 'na';
-                    }
-                }
-                var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
-                if (!Ext.isEmpty(dpName) && Ext.isEmpty(dpName.Value) ) {
-                    dpName.Value = "Participants";
-                }
-
+                //this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+                
                 if (group && group.name == "Total Population") {
                     // if not exist Population then create else update it 
+                    let dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
+                    if (dpValue) {
+                        if (Ext.isEmpty(dpValue.Value)) {
+                            dpValue.Value = 'na';
+                        }
+                    }
+
                     var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
                     if (!Ext.isEmpty(dpName)) {
                         dpName.Value = "Randomized";
+                    }
+                } else {
+                    // Update for other population 
+                    var dp = this.getDefaultPopulation(ogv.groupId);
+                    var defaultName = "Participants";
+                    var defaultVal = "na";
+                    var isupdateName = false;
+                    if (dp) {
+                        var dpNm = $.grep(dp, function (e) { return e.Name == 'n Type' });
+                        var dpVl = $.grep(dp, function (e) { return e.Name == 'n Value' });
+                        var dpDef = $.grep(dp, function (e) { return e.Name == 'Default' });
+                        
+                        for (var k = 0; k < dpNm.length; k++) {
+                            if (!Ext.isEmpty(dpNm[k].Value)) {
+                                defaultName = dpNm[k].Value;
+                                break;
+                            }
+                        }
+                        for (var k = 0; k < dpVl.length; k++) {
+                            if (!Ext.isEmpty(dpVl[k].Value)) {
+                                defaultVal = dpVl[k].Value;
+
+                                break;
+                            }
+                        }
+                        //defaultValue = dpVl[0].Value;                                                
+                    }
+                    let dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
+                    if (dpValue) {
+                        if (Ext.isEmpty(dpValue.Value)) {
+                            isupdateName = true;
+                            dpValue.Value = defaultVal;
+                        }
+                    }
+                    var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
+                    if ((!Ext.isEmpty(dpName) && Ext.isEmpty(dpName.Value)) || isupdateName) {
+                        dpName.Value = defaultName;
                     }
                 }
 
@@ -1320,6 +1357,50 @@ class ImportData {
                                         for (var k = 0; k < dpNm.length; k++) {
                                             if (!Ext.isEmpty(dpNm[k].Value)) {
                                                 defaultName = dpNm[k].Value;
+                                                break;
+                                            }
+                                        }
+                                        //defaultValue = dpVl[0].Value;                                                
+                                        break;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return defaultName;
+    }
+    getDefaultPopulation (groupId) {
+        var defaultName = '';
+        var Groups = Extract.Helper.getEntityAsArray(Extract.EntityTypes.Groups);
+        if (Groups.length > 0) {
+            var cntgrp = Groups.length;
+            for (var g = 0; g < cntgrp; g++) {
+                if (Groups[g].id == groupId) {
+                    var Sources = Object.keys(Groups[g].Sources);
+                    var cntSource = Sources.length;
+                    for (var j = 0; j < cntSource; j++) {
+                        if (Sources[j] == Extract.Groups.SOURCENAMES.ARM_POPULATION) {
+                            var lstDP = Extract.Helper.getEntityListByArrayId(Groups[g].Sources[Sources[j]]);
+
+                            var cntRow = Utils.getRowwiseDPCount(lstDP);
+                            var dpList = Utils.rowwiseDPList(lstDP);
+
+                            for (var i = 0; i < dpList.length; i++) {
+                                var dp = dpList[i];
+                                var dpNm = $.grep(dp, function (e) { return e.Name == 'n Type' });
+                                var dpVl = $.grep(dp, function (e) { return e.Name == 'n Value' });
+                                var dpDef = $.grep(dp, function (e) { return e.Name == 'Default' });
+                                if (dpDef.length > 0) {
+                                    if (dpDef[0].Value == true) {
+                                        for (var k = 0; k < dpNm.length; k++) {
+                                            if (!Ext.isEmpty(dpNm[k].Value)) {
+                                                defaultName = dpNm[k].Value;
+                                                return dp;
                                                 break;
                                             }
                                         }
