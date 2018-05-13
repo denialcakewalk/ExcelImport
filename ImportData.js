@@ -194,7 +194,7 @@ class ImportData {
         console.log("Import started...");
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "168015")) { // || refIds[i] == "926565" , "2281657"
+            if (true || (refIds[i] == "2273898")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 //let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -947,11 +947,20 @@ class ImportData {
                                                             }
                                                             if (ftypeval && ["standard", "change", "% change", "time since", "time to", "duration", "incidence", "prevalence"].indexOf(ftypeval.toLowerCase()) == -1) {
                                                                 if (val.indexOf('SD') > -1 || val.indexOf('SE') > -1) {
-                                                                    val += " [" + ftypeval + "]";
+                                                                    val = " [" + ftypeval + "]" + val;
                                                                 } else {
-                                                                    val += " [(" + ftypeval + ")]";
+                                                                    if (ftypeval == "IQR") {
+                                                                        val += " [(" + ftypeval + ")]";
+                                                                    } else {
+                                                                        val += " [" + ftypeval + "]";
+                                                                    }
                                                                 }
                                                                 
+                                                                //if (val.indexOf('SD') > -1 || val.indexOf('SE') > -1) {
+                                                                //    val += " [" + ftypeval + "]";
+                                                                //} else {
+                                                                //    val += " [(" + ftypeval + ")]";
+                                                                //}
                                                             }
 
                                                         } else {
@@ -1213,6 +1222,7 @@ class ImportData {
     isEmptyOutcomeSet(oSet) {
         var isEmpty = true;
         for (var i = 0; i < oSet.OutcomeGroupValues.length; i++) {
+            debugger
             var ogv = Extract.ExcelImport.getEntity(Extract.EntityTypes.OutcomeGroupValues, oSet.OutcomeGroupValues[i]);
             if (ogv) {                
                 var Values = [];
@@ -1221,6 +1231,12 @@ class ImportData {
                 //this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
                 
                 if (group && group.name == "Total Population") {
+                    let firstTimepoint = this.getFirstTimepint(oSet);
+                    if (!Ext.isEmpty(firstTimepoint)) {
+                        ogv["timepoint"] = firstTimepoint
+                    }
+
+                    //ogv.timepoint.id = timepoint_standard.id;
                     // if not exist Population then create else update it 
                     let dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
                     if (dpValue) {
@@ -1285,7 +1301,18 @@ class ImportData {
         }
         return isEmpty;
     }
-
+    getFirstTimepint(oSet) {
+        for (let groupRow = 0; groupRow < oSet.OutcomeGroupValues.length; groupRow++) {
+            let ogv = Extract.ExcelImport.getEntity(Extract.EntityTypes.OutcomeGroupValues, oSet.OutcomeGroupValues[groupRow]);
+            if (ogv) {
+                let group = Extract.ExcelImport.getEntity("Groups", ogv.groupId);
+                //this.createDatapointAddToSource("Population Type", "Participant", 0, 4, Extract.EntityTypes.Groups, grpId, Extract.Groups.SOURCENAMES.ARM_POPULATION);
+                if (group && group.name != "Total Population") {
+                    return ogv.timepoint;
+                }
+            }
+        }
+    }
     updateParticipants(ogv, rowData, key, colkey) {
         var val = "";
         if (key == colkey + '_Population_ITT' || key == colkey + '_Population' || key == colkey + '_Population_PP') {
