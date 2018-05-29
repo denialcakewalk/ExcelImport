@@ -607,7 +607,7 @@ class ImportData {
                                 for (var key in tempdata) {
                                     if (tempdata[key] != "ResultName") {
                                         if (key.indexOf('_Population') > 0) {
-                                            console.log(refId);
+                                            //console.log(refId);
                                             // allow to add outcome becuase it is not exist for this reference 
                                             var oid = me.getoutcomeidbyName(outcomeNames, tempdata[key]);
                                             var ocome = Extract.ExcelImport.getEntity(Extract.EntityTypes.Outcomes, oid);
@@ -699,7 +699,7 @@ class ImportData {
                                             if (tempdata[key] != "ResultName") {
                                                 if (key.indexOf('_') > 0 || key.indexOf('_Population') > 0 || ((key.indexOf('_n') > 0 || key.indexOf('_FieldType') > 0)  && outcomeSheetNo == 1 ) ) {
                                                     // allow to add outcome becuase it is not exist for this reference 
-                                                    console.log(refId);
+                                                    //console.log(refId);
                                                     var oid = me.getoutcomeidbyName(outcomeNames, tempdata[key]);
                                                     var ocome = Extract.ExcelImport.getEntity(Extract.EntityTypes.Outcomes, oid);
                                                     var osetid = me.getoutcomesetidbyoutcomeName(outcomeNames, outcome_osets, tempdata[key], OtimepointKey + key, obj_outcome_outcomeset);
@@ -805,6 +805,9 @@ class ImportData {
                         }
                     }
                     var group = this.getGorupbyGroupName(rowData["GroupName"], refId);
+                    if (!group || !group["id"]) {
+                        console.log(rowKey + '-' + j + '-' + refId + " : " + rowData["GroupName"]);
+                    }
                     var groupId = group.id;
                     if (groupId) {
                         for (let Tcolkey in obj_outcome_outcomeset) { // Make it upper becuae we need to create duplicate iteration when MOA have two data.                        
@@ -1037,7 +1040,7 @@ class ImportData {
                                                                                         
                                             dpFType.Value += val;
                                             dpFType.Value = (dpFType.Value).trim();
-                                            console.log(dpFType.Value);
+                                            //console.log(dpFType.Value);
                                             var ftypeval2 = dpFType.Value;
                                             // udpate field Type
                                             // Updated field value as well 
@@ -1093,9 +1096,9 @@ class ImportData {
                                                     } else {
                                                         val = rowData[colkey + '_SD_SE'];
                                                         if (val && val != "") {
-                                                            console.log(val);
+                                                            //console.log(val);
                                                             val = this.roundtoDecimal(val, 2);
-                                                            console.log(val);
+                                                            //console.log(val);
                                                             Extract.ExcelImport.createFieldValue(ftype, val, "OutcomeGroupFieldValue", dpfvalue.id, Extract.EntityTypes.Datapoints, 'Value');
                                                         }
                                                     }
