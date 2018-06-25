@@ -193,7 +193,7 @@ class ImportData {
         console.log("Import started...");
         //Now Process each refid
         for (let i = 0; i < refIds.length; i++) {
-            if (true || (refIds[i] == "2261717")) { // || refIds[i] == "926565" , "2281657"
+            if (true && (refIds[i] == "765188")) { // || refIds[i] == "926565" , "2281657"
                 this.processStudyLevel();
                 let rows = data[refIds[i]];
                 //let grp = Extract.ExcelImport.createGroups("Total Population");
@@ -716,7 +716,6 @@ class ImportData {
                                                         var dpNegPos = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, outSet.id, outSet, Extract.Outcomes.SOURCENAMES.OTHERS, "NegPos");
                                                         dpNegPos.Value = negPos.substring(0, 3);
                                                         // udpate category for outcome 
-                                                        debugger
                                                         var dpCategory = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.Outcomes, oid, ocome, Extract.Outcomes.SOURCENAMES.OTHERS, "Category");
                                                         if (Ext.isEmpty(dpCategory.Value)) {
                                                             dpCategory.Value = category;
@@ -913,10 +912,9 @@ class ImportData {
                                             this.updateParticipants(ogv, rowData, key, colkey);
                                             if (val != "") {
                                                 var dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, oset.id, oset, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
-                                                dpMOA.Value = "PP";
-                                                //if (dpMOA.Value != "ITT") {
-                                                //    dpMOA.Value = "PP";
-                                                //} 
+                                                if (dpMOA.Value != "ITT") {
+                                                    dpMOA.Value = "PP";
+                                                } 
                                             }
                                             countMOA++;
                                             if (countMOA == 0) {
@@ -1162,7 +1160,7 @@ class ImportData {
                                         // Clone data using oid and osetid and update value for n , N and per
                                         let osetCloned = Extract.ExcelImport.cloneOutcomeSets(oid, osetid);
                                         let ogvCloned = Extract.ExcelImport.getOutcomeGroupValuesByGroupId(osetCloned, groupId);
-                                        ogvCloned
+                                        
                                         // update MOA for PP instead of ITT
                                         let dpMOA = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeSets, osetCloned.id, osetCloned, Extract.Outcomes.SOURCENAMES.OTHERS, "MethodAnalysis");
                                         dpMOA.Value = "PP";
@@ -1292,7 +1290,6 @@ class ImportData {
     isEmptyOutcomeSet(oSet) {
         var isEmpty = true;
         for (var i = 0; i < oSet.OutcomeGroupValues.length; i++) {
-            debugger
             var ogv = Extract.ExcelImport.getEntity(Extract.EntityTypes.OutcomeGroupValues, oSet.OutcomeGroupValues[i]);
             if (ogv) {
                 var Values = [];
@@ -1320,10 +1317,10 @@ class ImportData {
                         dpName.Value = "Randomized";
                     }
                 } else {
-                    debugger
                     // Update for other population 
                     var dp = this.getDefaultPopulation(ogv.groupId);
                     var defaultName = "Participants";
+                    var defaultNameTemp = "";
                     var defaultVal = "na";
                     var isupdateName = false;
                     if (dp) {
@@ -1353,6 +1350,18 @@ class ImportData {
                             dpValue.Value = defaultVal;
                         }
                     }
+                    if (!Ext.isEmpty(dpValue.Value)) {
+                        defaultNameTemp = this.getDefaultPopulationName(ogv.groupId, dpValue.Value);
+                    }
+
+                    defaultNameTemp = defaultNameTemp.trim();
+                    var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
+                    if (!Ext.isEmpty(defaultNameTemp) && !Ext.isEmpty(dpName.Value)) {
+                        dpName.Value = defaultNameTemp;
+                    } else if (!Ext.isEmpty(dpName.Value)) {
+                        dpName.Value = "Participants";
+                    }
+
                     var dpName = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "name");
                     if ((!Ext.isEmpty(dpName) && Ext.isEmpty(dpName.Value)) || isupdateName) {
                         dpName.Value = defaultName;
@@ -1390,10 +1399,11 @@ class ImportData {
             val = rowData[key];
         }
         var dpValue = Extract.ExcelImport.getDataPointByName(Extract.EntityTypes.OutcomeGroupValues, ogv.id, ogv, Extract.Outcomes.SOURCENAMES.POPULATION, "value");
-        if (!Ext.isEmpty(val)) {
+        if (!Ext.isEmpty(val) && Ext.isEmpty(dpValue.Value)) {
             dpValue.Value = val;
         }
         var defaultName = "";
+
         if (!Ext.isEmpty(val)) {
             defaultName = this.getDefaultPopulationName(ogv.groupId, val.trim());
         }

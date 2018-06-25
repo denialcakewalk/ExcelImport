@@ -760,8 +760,8 @@ Utils.updatedExcelDataToFirebase = function (dataList) {
         //var convertedData = Extract.Helper.convertToNewFormat(studyData);
 
         //Update data to path
-        //refId = 230399;
-        //taskId = 31121;
+        refId = 4915;
+        taskId = 6589;
         var path = Utils.getDBPath(refId, taskId);
 
         //changed the branch name to localhost for testing (in firebase)
@@ -770,8 +770,7 @@ Utils.updatedExcelDataToFirebase = function (dataList) {
         path = path.replace("training", "extracttest");
         path = path.replace("production", "extracttest");
 
-        path = path.replace("extracttest", "production"); // Udpate to Staging
-
+        path = path.replace("extracttest", "localhost"); // Udpate to Staging
         console.log(`Request created for ${path}`);
         firebase.database().ref(path).set(jsonData);
         //Extract.Core.updateToPath(path, jsonData);
